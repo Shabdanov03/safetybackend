@@ -12,6 +12,7 @@ import safetybackend.sefetybackend.config.jwtConfig.JwtService;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
+import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.entity.Address;
 import safetybackend.sefetybackend.entity.User;
 import safetybackend.sefetybackend.entity.UserInfo;
@@ -101,6 +102,40 @@ public class UserServiceImpl implements UserService {
                 .token(jwtToken)
                 .email(user.getUsername())
                 .role(user.getRole())
+                .build();
+    }
+
+    @Override
+    public UserResponse updateUser(Long userId, SignUpRequest request) {
+        log.info("User update");
+
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("User with id: %s not found !", userId)));
+        log.info("find user by id successful");
+
+        user.setFirstName(request.getFirstName() != null ? request.getFirstName() : user.getFirstName());
+        user.setLastName(request.getLastName() != null ? request.getLastName() : user.getLastName());
+        user.setAge(request.getAge() != null ? request.getAge() : user.getAge());
+        user.getAddress().setSim1(request.getPhoneNumber1() != null ? request.getPhoneNumber1() : user.getAddress().getSim1());
+        user.getAddress().setSim2(request.getPhoneNumber2() != null ? request.getPhoneNumber2() : user.getAddress().getSim2());
+        user.getAddress().setAddress(request.getAddress() != null ? request.getAddress() : user.getAddress().getAddress());
+        user.getAddress().setCity(request.getCity() != null ? request.getCity() : user.getAddress().getCity());
+        user.getUserInfo().setEmail(request.getEmail() != null ? request.getEmail() : user.getUserInfo().getEmail());
+        user.getUserInfo().setPassword(request.getPassword() != null ? request.getPassword() : user.getUserInfo().getPassword());
+        userRepository.save(user);
+
+        log.info("User update successful");
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .age(user.getAge())
+                .phoneNumber1(user.getAddress().getSim1())
+                .phoneNumber2(user.getAddress().getSim2())
+                .address(user.getAddress().getAddress())
+                .email(user.getUserInfo().getEmail())
+                .password(user.getUserInfo().getPassword())
                 .build();
     }
 

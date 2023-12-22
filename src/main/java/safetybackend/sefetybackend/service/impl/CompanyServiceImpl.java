@@ -2,20 +2,14 @@ package safetybackend.sefetybackend.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import safetybackend.sefetybackend.config.jwtConfig.JwtService;
-import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.company.CompanyRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
-import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.entity.Company;
 import safetybackend.sefetybackend.entity.UserInfo;
 import safetybackend.sefetybackend.enums.Role;
 import safetybackend.sefetybackend.exceptions.AlreadyExistException;
-import safetybackend.sefetybackend.exceptions.NotFoundException;
 import safetybackend.sefetybackend.repository.CompanyRepository;
 import safetybackend.sefetybackend.service.CompanyService;
 
@@ -24,8 +18,6 @@ import safetybackend.sefetybackend.service.CompanyService;
 @Slf4j
 public class CompanyServiceImpl implements CompanyService {
     private final CompanyRepository companyRepository;
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     @Override

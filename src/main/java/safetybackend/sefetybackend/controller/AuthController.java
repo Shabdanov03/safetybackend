@@ -4,10 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
+import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.service.UserService;
 
 @RestController
@@ -27,5 +29,12 @@ public class AuthController {
     @PostMapping("/sign-in")
     public ResponseEntity<AuthenticationResponse> signIn(@RequestBody @Valid SignInRequest signInRequest) {
         return ResponseEntity.ok(userService.signIn(signInRequest));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @Operation(summary = "This is update user method")
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable @Valid Long id, @RequestBody SignUpRequest request) {
+        return userService.updateUser(id, request);
     }
 }
