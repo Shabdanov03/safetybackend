@@ -2,7 +2,13 @@ package safetybackend.sefetybackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import safetybackend.sefetybackend.enums.Role;
+
+import java.util.Collection;
+import java.util.List;
 
 import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.EnumType.STRING;
@@ -14,7 +20,7 @@ import static jakarta.persistence.EnumType.STRING;
 @Builder
 @Table(name = "user_infos")
 @Entity
-public class UserInfo {
+public class UserInfo implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_info_id_gen")
     @SequenceGenerator(name = "user_info_id_gen", sequenceName = "user_info_id_seq", allocationSize = 1)
@@ -28,4 +34,39 @@ public class UserInfo {
     private User user;
     @OneToOne(cascade = ALL)
     private Company company;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

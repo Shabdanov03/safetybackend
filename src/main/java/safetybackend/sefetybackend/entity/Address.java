@@ -23,12 +23,10 @@ public class Address {
     private String sim2;
     private String city;
     private String address;
-    @OneToOne(cascade = {REFRESH,PERSIST,MERGE,DETACH})
+    @OneToOne(cascade = {REFRESH, PERSIST, MERGE, DETACH})
     private User user;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-
-
 
 
     @PrePersist

@@ -19,15 +19,13 @@ public class Balance {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "balance_id_gen")
     @SequenceGenerator(name = "balance_id_gen", sequenceName = "balance_id_seq", allocationSize = 1)
     private Long id;
-    @OneToOne(cascade = {REFRESH,PERSIST,MERGE,DETACH})
+    @OneToOne(cascade = {REFRESH, PERSIST, MERGE, DETACH})
     private User user;
     private Double amount;
-    @OneToOne(cascade = {PERSIST,MERGE,DETACH,REFRESH},mappedBy = "balance")
+    @OneToOne(cascade = {PERSIST, MERGE, DETACH, REFRESH}, mappedBy = "balance")
     private Billing billing;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-
-
 
 
     @PrePersist

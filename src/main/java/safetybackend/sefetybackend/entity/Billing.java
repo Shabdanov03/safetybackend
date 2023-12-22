@@ -20,12 +20,10 @@ public class Billing {
     @SequenceGenerator(name = "billing_id_gen", sequenceName = "billing_id_seq", allocationSize = 1)
     private Long id;
     private Double billingAmount;
-    @OneToOne(cascade = {REFRESH,MERGE,PERSIST,DETACH})
+    @OneToOne(cascade = {REFRESH, MERGE, PERSIST, DETACH})
     private Balance balance;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-
-
 
 
     @PrePersist

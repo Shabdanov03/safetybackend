@@ -24,23 +24,21 @@ public class User {
     private String firstName;
     private String lastName;
     private Byte age;
-    @OneToOne(cascade = ALL,mappedBy = "user")
+    @OneToOne(cascade = ALL, mappedBy = "user")
     private UserInfo userInfo;
-    @OneToOne(cascade = ALL,mappedBy = "user")
+    @OneToOne(cascade = ALL, mappedBy = "user")
     private Address address;
-    @OneToOne(cascade = ALL,mappedBy = "user")
+    @OneToOne(cascade = ALL, mappedBy = "user")
     private Balance balance;
-    @ManyToOne(cascade = {REFRESH,DETACH,MERGE,PERSIST})
+    @ManyToOne(cascade = {REFRESH, DETACH, MERGE, PERSIST})
     private Company company;
-    @ManyToOne(cascade = {REFRESH,DETACH,MERGE,PERSIST})
+    @ManyToOne(cascade = {REFRESH, DETACH, MERGE, PERSIST})
     private Emergency emergency;
     @Enumerated(STRING)
     private UserStatus userStatus;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-
-
 
 
     @PrePersist
