@@ -27,7 +27,7 @@ public class UserInfo implements UserDetails {
     private Long id;
     private String email;
     private String password;
-    private String resetPasswordToken;
+    private int resetPasswordCode;
     @Enumerated(STRING)
     private Role role;
     @OneToOne(cascade = ALL)
