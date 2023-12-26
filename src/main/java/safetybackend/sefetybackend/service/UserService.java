@@ -18,5 +18,6 @@ public interface UserService {
 
     UserResponse updateUser(Long userId, SignUpRequest request);
 
+    SimpleResponse deleteById(Long userId);
 
 }

@@ -15,6 +15,7 @@ import safetybackend.sefetybackend.service.CompanyService;
 @CrossOrigin
 public class CompanyController {
     private final CompanyService companyService;
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "This is save test method")
     @PostMapping("/save")

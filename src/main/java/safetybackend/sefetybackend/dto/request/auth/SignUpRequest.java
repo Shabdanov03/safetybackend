@@ -36,11 +36,9 @@ public class SignUpRequest {
     private String phoneNumber1;
     private String phoneNumber2;
 
-    @NotBlank(message = "The city must not be empty.")
     @NotNull(message = "The city must not be empty.")
     private String city;
 
-    @NotBlank(message = "The address must not be empty.")
     @NotNull(message = "The address must not be empty.")
     private String address;
 

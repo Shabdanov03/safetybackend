@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -79,6 +80,7 @@ public class UserServiceImpl implements UserService {
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
         newUserInfo.setUser(newUser);
+        newAddress.setUser(newUser);
         userRepository.save(newUser);
 
         var jwtToken = jwtService.generateToken(newUserInfo);
@@ -196,34 +198,48 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long userId, SignUpRequest request) {
         log.info("User update");
-
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("User with id: %s not found !", userId)));
         log.info("find user by id successful");
 
         UserInfo userInfo = userInfoRepository.findUserInfoByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User with id: %s not found !", userId)));
-        log.info("find userinfo  by user id successful");
+                new NotFoundException(String.format("User info with id: %s not found !", userId)));
+        log.info("find user info by user id successful");
 
         Address address = addressRepository.findAddressByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User with id: %s not found !", userId)));
+                new NotFoundException(String.format("Address with id: %s not found !", userId)));
         log.info("find address by user id successful");
 
-        userInfo = UserInfo.builder()
-                .email(request.getEmail() != null ? request.getEmail() : userInfo.getEmail())
-                .password(request.getPassword() != null ? request.getPassword() : userInfo.getPassword())
-                .build();
-
-        address = Address.builder()
-                .sim1(request.getPhoneNumber1() != null ? request.getPhoneNumber1() : address.getSim1())
-                .sim2(request.getPhoneNumber2() != null ? request.getPhoneNumber2() : address.getSim2())
-                .city(request.getCity() != null ? request.getCity() : address.getCity())
-                .address(request.getAddress() != null ? request.getAddress() : address.getAddress())
-                .build();
-
-        user.setFirstName(request.getFirstName() != null ? request.getFirstName() : user.getFirstName());
-        user.setLastName(request.getLastName() != null ? request.getLastName() : user.getLastName());
-        user.setAge(request.getAge() != null ? request.getAge() : user.getAge());
+        //TODO Update user
+        if (request.getFirstName() != null){
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getAge() != null) {
+            user.setAge( request.getAge());
+        }
+        // TODO Update user info
+        if (request.getEmail() != null) {
+            userInfo.setEmail(request.getEmail());
+        }
+        if (request.getPassword() != null){
+            userInfo.setPassword(request.getPassword());
+        }
+        // TODO Update user address
+        if (request.getPhoneNumber1() != null){
+            address.setSim1(request.getPhoneNumber1());
+        }
+        if ((request.getPhoneNumber2() != null)){
+            address.setSim2(request.getPhoneNumber2());
+        }
+        if (request.getCity() != null){
+            address.setCity(request.getCity());
+        }
+        if (request.getAddress() != null){
+            address.setAddress(request.getAddress());
+        }
         user.setAddress(address);
         user.setUserInfo(userInfo);
         userRepository.save(user);
@@ -243,18 +259,43 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    public SimpleResponse deleteById(Long userId) {
+        log.info("Deleting user with id: {}", userId);
+
+        User user = userRepository.findById(userId) .orElseThrow(() -> {
+            String errorMessage = String.format("User with id '%d' not found", userId);
+            log.error(errorMessage);
+            return new NotFoundException(errorMessage);
+        });
+
+        userRepository.deleteById(userId);
+
+        log.info("User with id '{}' successfully deleted", userId);
+
+        return SimpleResponse.builder()
+                .message(String.format("User with id '%d' successfully deleted", userId))
+                .status(HttpStatus.OK)
+                .build();
+    }
+
 
     @PostConstruct
     public void addAdmin() {
         log.info("Init method");
         if (!userInfoRepository.existsByEmail(EMAIL)) {
-            UserInfo user = UserInfo
+            User user = User.builder()
+                    .firstName("Admin")
+                    .lastName("Adminov")
+                    .build();
+            UserInfo userInfo = UserInfo
                     .builder()
                     .email(EMAIL)
                     .password(passwordEncoder.encode(PASSWORD))
                     .role(Role.ADMIN)
+                    .user(user)
                     .build();
-            userInfoRepository.save(user);
+            userInfoRepository.save(userInfo);
             log.info("Admin saved");
         }
     }
