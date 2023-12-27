@@ -42,5 +42,8 @@ public class SignUpRequest {
     @NotNull(message = "The address must not be empty.")
     private String address;
 
+    @NotNull(message = "The image must not be empty.")
+    private String image;
+
 
 }

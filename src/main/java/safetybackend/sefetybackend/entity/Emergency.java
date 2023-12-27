@@ -27,8 +27,8 @@ public class Emergency {
     private Double companyLong;
     @OneToMany(cascade = {REFRESH, DETACH, MERGE, PERSIST}, mappedBy = "emergency")
     private List<User> users;
-    @ManyToMany(cascade = {REFRESH, DETACH, MERGE, PERSIST})
-    private List<Company> companies;
+    @ManyToOne(cascade = {REFRESH, DETACH, MERGE, PERSIST})
+    private Company company;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 

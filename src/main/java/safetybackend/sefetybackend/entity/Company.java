@@ -31,7 +31,7 @@ public class Company {
     private UserInfo userInfo;
     @OneToMany(cascade = {MERGE, REFRESH, PERSIST, DETACH}, mappedBy = "company")
     private List<User> users;
-    @ManyToMany(cascade = {REFRESH, DETACH, MERGE, PERSIST}, mappedBy = "companies")
+    @OneToMany(cascade = {REFRESH, DETACH, MERGE, PERSIST}, mappedBy = "company")
     private List<Emergency> emergencies;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
