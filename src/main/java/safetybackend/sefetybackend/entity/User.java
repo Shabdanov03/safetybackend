@@ -37,6 +37,7 @@ public class User {
     @Enumerated(STRING)
     private UserStatus userStatus;
     private Boolean isActive;
+    private String image;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 
