@@ -2,13 +2,10 @@ package safetybackend.sefetybackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import safetybackend.sefetybackend.enums.CompanyStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static jakarta.persistence.CascadeType.*;
-import static jakarta.persistence.EnumType.STRING;
 
 @Getter
 @Setter
@@ -25,8 +22,6 @@ public class Company {
     private String name;
     private String phoneNumber;
     private Boolean isActive;
-    @Enumerated(STRING)
-    private CompanyStatus status;
     @OneToOne(cascade = ALL, mappedBy = "company")
     private UserInfo userInfo;
     @OneToMany(cascade = {MERGE, REFRESH, PERSIST, DETACH}, mappedBy = "company")
