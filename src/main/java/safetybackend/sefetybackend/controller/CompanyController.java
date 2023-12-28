@@ -22,4 +22,11 @@ public class CompanyController {
     public SimpleResponse save(@RequestBody @Valid CompanyRequest companyRequest) {
         return companyService.saveCompany(companyRequest);
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "This is delete company with id method")
+    @DeleteMapping("/{id}")
+    public SimpleResponse delete(@PathVariable Long id) {
+        return companyService.deleteById(id);
+    }
 }

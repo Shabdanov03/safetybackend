@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
+import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
 import safetybackend.sefetybackend.service.UserService;
 
 @RestController
@@ -21,7 +22,7 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     @Operation(summary = "This is update user method")
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> update(@PathVariable @Valid Long id, @RequestBody SignUpRequest request) {
+    public ResponseEntity<UserUpdateResponse> update(@PathVariable @Valid Long id, @RequestBody SignUpRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
@@ -30,6 +31,13 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<SimpleResponse> delete(@PathVariable @Valid Long id) {
         return ResponseEntity.ok(userService.deleteById(id));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @Operation(summary = "This is get user by id method")
+    @GetMapping("/{id}")
+    public UserResponse getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
     }
 
 }

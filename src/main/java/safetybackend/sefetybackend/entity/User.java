@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import safetybackend.sefetybackend.enums.UserStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.CascadeType.*;
@@ -23,7 +24,7 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
-    private Byte age;
+    private LocalDate dateOfBirth;
     @OneToOne(cascade = ALL, mappedBy = "user")
     private UserInfo userInfo;
     @OneToOne(cascade = ALL, mappedBy = "user")

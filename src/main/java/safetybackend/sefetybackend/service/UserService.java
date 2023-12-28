@@ -6,6 +6,7 @@ import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
+import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
 
 public interface UserService {
     AuthenticationResponse signUp(SignUpRequest signUpRequest);
@@ -16,8 +17,9 @@ public interface UserService {
 
     SimpleResponse resetPassword(String code, String newPassword);
 
-    UserResponse updateUser(Long userId, SignUpRequest request);
+    UserUpdateResponse updateUser(Long userId, SignUpRequest request);
 
     SimpleResponse deleteById(Long userId);
 
+    UserResponse getUserById(Long userId);
 }
