@@ -2,6 +2,7 @@ package safetybackend.sefetybackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,7 +22,6 @@ public class Company {
     private Long id;
     private String name;
     private String phoneNumber;
-    private Boolean isActive;
     @OneToOne(cascade = ALL, mappedBy = "company")
     private UserInfo userInfo;
     @OneToMany(cascade = {MERGE, REFRESH, PERSIST, DETACH}, mappedBy = "company")

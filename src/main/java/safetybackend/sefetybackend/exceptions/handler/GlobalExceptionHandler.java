@@ -1,6 +1,5 @@
 package safetybackend.sefetybackend.exceptions.handler;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;

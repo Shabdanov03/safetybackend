@@ -17,7 +17,9 @@ import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
+import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
 import safetybackend.sefetybackend.entity.Address;
+import safetybackend.sefetybackend.entity.Company;
 import safetybackend.sefetybackend.entity.User;
 import safetybackend.sefetybackend.entity.UserInfo;
 import safetybackend.sefetybackend.enums.Role;
@@ -25,12 +27,15 @@ import safetybackend.sefetybackend.exceptions.AlreadyExistException;
 import safetybackend.sefetybackend.exceptions.BadRequestException;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
 import safetybackend.sefetybackend.repository.AddressRepository;
+import safetybackend.sefetybackend.repository.CompanyRepository;
 import safetybackend.sefetybackend.repository.UserInfoRepository;
 import safetybackend.sefetybackend.repository.UserRepository;
+import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +48,8 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final TemplateEngine templateEngine;
-
+    private final CompanyRepository companyRepository;
+    private final CustomUserRepository customUserRepository;
     private static final int CODE_LENGTH = 6;
 
 
@@ -59,6 +65,9 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByUserInfoEmail(signUpRequest.getEmail())) {
             throw new AlreadyExistException("Sorry, this email is already registered. Please try a different email or login to your existing account");
         }
+        Company company = companyRepository.findById(1L).orElseThrow(() -> new NotFoundException(
+                String.format("Company with id : %s not found !", 1L)));
+
         UserInfo newUserInfo = UserInfo.builder()
                 .email(signUpRequest.getEmail())
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
@@ -75,13 +84,15 @@ public class UserServiceImpl implements UserService {
         User newUser = new User();
         newUser.setFirstName(signUpRequest.getFirstName());
         newUser.setLastName(signUpRequest.getLastName());
-        newUser.setAge(signUpRequest.getAge());
+        newUser.setDateOfBirth(signUpRequest.getDateOfBirth());
         newUser.setIsActive(false);
         newUser.setImage(signUpRequest.getImage());
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
         newUserInfo.setUser(newUser);
         newAddress.setUser(newUser);
+        company.setUsers(List.of(newUser));
+        newUser.setCompany(company);
         userRepository.save(newUser);
 
         var jwtToken = jwtService.generateToken(newUserInfo);
@@ -101,7 +112,7 @@ public class UserServiceImpl implements UserService {
         UserInfo user = userRepository.findUserInfoByEmail(signInRequest.getEmail())
                 .orElseThrow(() -> {
                     log.error("User with email: %s not found".formatted(signInRequest.getEmail()));
-                    return new RuntimeException(
+                    return new NotFoundException(
                             "User with email: %s not found".formatted(signInRequest.getEmail()));
                 });
         if (signInRequest.getPassword().isBlank()) {
@@ -197,7 +208,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserResponse updateUser(Long userId, SignUpRequest request) {
+    public UserUpdateResponse updateUser(Long userId, SignUpRequest request) {
         log.info("User update");
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("User with id: %s not found !", userId)));
@@ -218,10 +229,10 @@ public class UserServiceImpl implements UserService {
         if (request.getLastName() != null) {
             user.setLastName(request.getLastName());
         }
-        if (request.getAge() != null) {
-            user.setAge(request.getAge());
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
         }
-        if (request.getImage() != null){
+        if (request.getImage() != null) {
             user.setImage(request.getImage());
         }
         // TODO Update user info
@@ -250,13 +261,15 @@ public class UserServiceImpl implements UserService {
 
         log.info("User update successful");
 
-        return UserResponse.builder()
+        return UserUpdateResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .age(user.getAge())
+                .dateOfBirth(user.getDateOfBirth())
+                .image(user.getImage())
                 .phoneNumber1(user.getAddress().getSim1())
                 .phoneNumber2(user.getAddress().getSim2())
+                .city(user.getAddress().getCity())
                 .address(user.getAddress().getAddress())
                 .email(user.getUserInfo().getEmail())
                 .password(user.getUserInfo().getPassword())
@@ -272,15 +285,26 @@ public class UserServiceImpl implements UserService {
             log.error(errorMessage);
             return new NotFoundException(errorMessage);
         });
-
-        userRepository.deleteById(userId);
+        userRepository.delete(user);
 
         log.info("User with id '{}' successfully deleted", userId);
-
         return SimpleResponse.builder()
                 .message(String.format("User with id '%d' successfully deleted", userId))
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    @Override
+    public UserResponse getUserById(Long userId) {
+        log.info("Getting user by id '{}'", userId);
+
+        return customUserRepository.getUserById(userId).orElseThrow(
+                () -> {
+                    String errorMessage = String.format("User with id '%s' was not found", userId);
+                    log.error(errorMessage);
+                    return new NotFoundException(errorMessage);
+                }
+        );
     }
 
 

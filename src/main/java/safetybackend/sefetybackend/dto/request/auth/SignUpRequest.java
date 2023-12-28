@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Builder
 @Getter
 @Setter
@@ -19,8 +21,8 @@ public class SignUpRequest {
     @NotNull(message = "The last name must not be empty.")
     private String lastName;
 
-    @NotNull(message = "The age must not be empty.")
-    private Byte age;
+    @NotNull(message = "The date of birth must not be empty.")
+    private LocalDate dateOfBirth;
 
     @NotBlank(message = "The email must not be empty.")
     @NotNull(message = "The email must not be empty.")

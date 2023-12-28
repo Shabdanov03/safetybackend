@@ -6,4 +6,6 @@ import safetybackend.sefetybackend.dto.response.SimpleResponse;
 public interface CompanyService {
     SimpleResponse saveCompany(CompanyRequest request);
 
+    SimpleResponse deleteById(Long companyId);
+
 }
