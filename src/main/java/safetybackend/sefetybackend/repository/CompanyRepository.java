@@ -5,5 +5,4 @@ import safetybackend.sefetybackend.entity.Company;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
     boolean existsByUserInfoEmail(String email);
-
 }

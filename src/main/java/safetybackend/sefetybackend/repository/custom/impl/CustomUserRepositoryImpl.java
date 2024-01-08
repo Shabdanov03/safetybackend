@@ -22,7 +22,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 u.id AS id,
                 CONCAT(u.first_name,' ',u.last_name) AS full_name,
                 u.date_of_birth AS date_of_birth,
-                u.image AS image,
+                f.file_url AS image,
                 ui.email AS email,
                 ui.password AS password,
                 ui.role AS role,
@@ -35,6 +35,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 LEFT JOIN user_infos ui ON u.id = ui.user_id
                 LEFT JOIN addresses a ON u.id = a.user_id
                 LEFT JOIN companies c ON u.company_id = c.id
+                LEFT JOIN files f ON u.id = f.user_id
                 WHERE ui.role = 'USER' and u.id = ?
                 """;
         UserResponse userResponse = jdbcTemplate.query(query, (resultSet, i) ->

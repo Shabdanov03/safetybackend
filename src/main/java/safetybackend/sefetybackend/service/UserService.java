@@ -1,5 +1,6 @@
 package safetybackend.sefetybackend.service;
 
+import org.springframework.web.multipart.MultipartFile;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
@@ -9,7 +10,7 @@ import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
 
 public interface UserService {
-    AuthenticationResponse signUp(SignUpRequest signUpRequest);
+    AuthenticationResponse signUp(SignUpRequest signUpRequest, MultipartFile multipartFile);
 
     AuthenticationResponse signIn(SignInRequest authenticationRequest);
 
@@ -21,5 +22,5 @@ public interface UserService {
 
     SimpleResponse deleteById(Long userId);
 
-    UserResponse getUserById(Long userId);
+    UserResponse getUser();
 }

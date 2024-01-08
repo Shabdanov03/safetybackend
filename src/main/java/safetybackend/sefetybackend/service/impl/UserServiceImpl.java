@@ -8,9 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import safetybackend.sefetybackend.config.jwtConfig.JwtService;
+import safetybackend.sefetybackend.config.minio.MinioService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
@@ -18,18 +21,12 @@ import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
-import safetybackend.sefetybackend.entity.Address;
-import safetybackend.sefetybackend.entity.Company;
-import safetybackend.sefetybackend.entity.User;
-import safetybackend.sefetybackend.entity.UserInfo;
+import safetybackend.sefetybackend.entity.*;
 import safetybackend.sefetybackend.enums.Role;
 import safetybackend.sefetybackend.exceptions.AlreadyExistException;
 import safetybackend.sefetybackend.exceptions.BadRequestException;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
-import safetybackend.sefetybackend.repository.AddressRepository;
-import safetybackend.sefetybackend.repository.CompanyRepository;
-import safetybackend.sefetybackend.repository.UserInfoRepository;
-import safetybackend.sefetybackend.repository.UserRepository;
+import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
@@ -50,6 +47,8 @@ public class UserServiceImpl implements UserService {
     private final TemplateEngine templateEngine;
     private final CompanyRepository companyRepository;
     private final CustomUserRepository customUserRepository;
+    private final FileRepository fileRepository;
+    private final MinioService minioService;
     private static final int CODE_LENGTH = 6;
 
 
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
     private String EMAIL;
 
     @Override
-    public AuthenticationResponse signUp(SignUpRequest signUpRequest) {
+    public AuthenticationResponse signUp(SignUpRequest signUpRequest,MultipartFile multipartFile) {
         log.info("Signing up");
         if (userRepository.existsByUserInfoEmail(signUpRequest.getEmail())) {
             throw new AlreadyExistException("Sorry, this email is already registered. Please try a different email or login to your existing account");
@@ -86,13 +85,19 @@ public class UserServiceImpl implements UserService {
         newUser.setLastName(signUpRequest.getLastName());
         newUser.setDateOfBirth(signUpRequest.getDateOfBirth());
         newUser.setIsActive(false);
-        newUser.setImage(signUpRequest.getImage());
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
         newUserInfo.setUser(newUser);
         newAddress.setUser(newUser);
         company.setUsers(List.of(newUser));
         newUser.setCompany(company);
+
+        String fileName = "user-" + newUser.getId() + "-image";
+        minioService.saveImage(fileName,multipartFile);
+        File newFile = new File();
+        newFile.setFileUrl(fileName);
+        newFile.setUser(newUser);
+        fileRepository.save(newFile);
         userRepository.save(newUser);
 
         var jwtToken = jwtService.generateToken(newUserInfo);
@@ -222,6 +227,10 @@ public class UserServiceImpl implements UserService {
                 new NotFoundException(String.format("Address with id: %s not found !", userId)));
         log.info("find address by user id successful");
 
+        File file = fileRepository.findFileByUserId(userId).orElseThrow(() ->
+                new NotFoundException(String.format("File with id: %s not found !", userId)));
+        log.info("find file by user id successful");
+
         //TODO Update user
         if (request.getFirstName() != null) {
             user.setFirstName(request.getFirstName());
@@ -232,9 +241,7 @@ public class UserServiceImpl implements UserService {
         if (request.getDateOfBirth() != null) {
             user.setDateOfBirth(request.getDateOfBirth());
         }
-        if (request.getImage() != null) {
-            user.setImage(request.getImage());
-        }
+
         // TODO Update user info
         if (request.getEmail() != null) {
             userInfo.setEmail(request.getEmail());
@@ -266,7 +273,7 @@ public class UserServiceImpl implements UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .dateOfBirth(user.getDateOfBirth())
-                .image(user.getImage())
+                .image(user.getImageUrl().getFileUrl())
                 .phoneNumber1(user.getAddress().getSim1())
                 .phoneNumber2(user.getAddress().getSim2())
                 .city(user.getAddress().getCity())
@@ -277,6 +284,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public SimpleResponse deleteById(Long userId) {
         log.info("Deleting user with id: {}", userId);
 
@@ -295,18 +303,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(Long userId) {
-        log.info("Getting user by id '{}'", userId);
+    public UserResponse getUser() {
+        log.info("Getting user by id ");
+        UserInfo userInfo = jwtService.getAuthenticationUser();
 
-        return customUserRepository.getUserById(userId).orElseThrow(
+        return customUserRepository.getUserById(userInfo.getUser().getId()).orElseThrow(
                 () -> {
-                    String errorMessage = String.format("User with id '%s' was not found", userId);
+                    String errorMessage = String.format("User with id '%s' was not found", userInfo.getUser().getId());
                     log.error(errorMessage);
                     return new NotFoundException(errorMessage);
                 }
         );
     }
-
 
     @PostConstruct
     public void addAdmin() {

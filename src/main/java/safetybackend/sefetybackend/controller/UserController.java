@@ -33,11 +33,11 @@ public class UserController {
         return ResponseEntity.ok(userService.deleteById(id));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "This is get user by id method")
-    @GetMapping("/{id}")
-    public UserResponse getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    @GetMapping()
+    public UserResponse getUserById() {
+        return userService.getUser();
     }
 
 }
