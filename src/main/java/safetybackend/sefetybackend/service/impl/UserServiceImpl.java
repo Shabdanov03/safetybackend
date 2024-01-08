@@ -14,22 +14,18 @@ import safetybackend.sefetybackend.config.jwtConfig.JwtService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
-import safetybackend.sefetybackend.entity.Address;
-import safetybackend.sefetybackend.entity.Company;
-import safetybackend.sefetybackend.entity.User;
-import safetybackend.sefetybackend.entity.UserInfo;
+import safetybackend.sefetybackend.entity.*;
 import safetybackend.sefetybackend.enums.Role;
+import safetybackend.sefetybackend.enums.UserStatus;
 import safetybackend.sefetybackend.exceptions.AlreadyExistException;
 import safetybackend.sefetybackend.exceptions.BadRequestException;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
-import safetybackend.sefetybackend.repository.AddressRepository;
-import safetybackend.sefetybackend.repository.CompanyRepository;
-import safetybackend.sefetybackend.repository.UserInfoRepository;
-import safetybackend.sefetybackend.repository.UserRepository;
+import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
@@ -50,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final TemplateEngine templateEngine;
     private final CompanyRepository companyRepository;
     private final CustomUserRepository customUserRepository;
+    private final EmergencyRepository emergencyRepository;
     private static final int CODE_LENGTH = 6;
 
 
@@ -305,6 +302,29 @@ public class UserServiceImpl implements UserService {
                     return new NotFoundException(errorMessage);
                 }
         );
+    }
+
+    @Override
+    public SimpleResponse needEmergencyHelpAndChangeUserStatus(UserNeedHelpRequest needHelpRequest) {
+        User user = userRepository.findById(needHelpRequest.getUserId()).orElseThrow(() -> {
+            String errorMessage = String.format("User with id '%d' not found", needHelpRequest.getUserId());
+            log.error(errorMessage);
+            return new NotFoundException(errorMessage);
+        });
+        log.info("Find user successfully");
+        user.setUserStatus(UserStatus.NEED_HELP);
+        userRepository.save(user);
+        log.info("User successfully saved !");
+        Emergency emergency = new Emergency();
+        emergency.setUsers(List.of(user));
+        emergency.setUserLong(needHelpRequest.getUserLong());
+        emergency.setUserLat(needHelpRequest.getUserLat());
+        emergencyRepository.save(emergency);
+        log.info("Emergency saved successful!");
+        return SimpleResponse.builder()
+                .message("Need emergency help and change user status successful")
+                .status(HttpStatus.OK)
+                .build();
     }
 
 
