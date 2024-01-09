@@ -1,5 +1,7 @@
 package safetybackend.sefetybackend.service;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
@@ -12,7 +14,7 @@ import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
 
 public interface UserService {
-    AuthenticationResponse signUp(SignUpRequest signUpRequest, MultipartFile multipartFile);
+    AuthenticationResponse signUp(SignUpRequest signUpRequest);
 
     AuthenticationResponse signIn(SignInRequest authenticationRequest);
 
@@ -20,6 +22,9 @@ public interface UserService {
 
     SimpleResponse resetPassword(String code, String newPassword);
 
+    SimpleResponse saveUserImage(MultipartFile multipartFile);
+
+    ResponseEntity<InputStreamResource> getUserImage(String fileName);
     UserUpdateResponse updateUser(SignUpRequest request);
 
     SimpleResponse deleteById(Long userId);

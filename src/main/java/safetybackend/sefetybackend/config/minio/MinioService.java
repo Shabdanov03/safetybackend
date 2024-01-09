@@ -1,21 +1,23 @@
 package safetybackend.sefetybackend.config.minio;
 
-import io.minio.PutObjectArgs;
-import io.minio.MinioClient;
+import io.minio.*;
+import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import safetybackend.sefetybackend.entity.File;
-import safetybackend.sefetybackend.entity.User;
 import safetybackend.sefetybackend.exceptions.BadRequestException;
-import safetybackend.sefetybackend.exceptions.NotFoundException;
-import safetybackend.sefetybackend.repository.FileRepository;
-import safetybackend.sefetybackend.repository.UserRepository;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 @Slf4j
@@ -23,32 +25,59 @@ import java.util.Optional;
 public class MinioService {
 
     private final MinioClient minioClient;
-    private final UserRepository userRepository;
-    private final FileRepository fileRepository;
     @Value("${minio.bucket}")
-    private String bucketName;
+    private String BUCKET_NAME;
 
     public void saveImage(String fileName, MultipartFile file) {
         try {
             InputStream inputStream = file.getInputStream();
             minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(BUCKET_NAME)
                             .object(fileName)
                             .stream(inputStream, inputStream.available(), -1)
                             .build()
-
-
             );
-         //   User user = userRepository.findById(userId).orElseThrow(()-> new NotFoundException("User with id: %s not found !"));
-            File file1 = new File();
-            file1.setFileUrl(fileName);
-          //  file1.setUser(user);
-            fileRepository.save(file1);
-            log.info("Image saved successfully: {}", fileName);
         } catch (Exception e) {
             log.error("Error saving image to MinIO: {}", e.getMessage(), e);
             throw new BadRequestException("Error saving image to MinIO:");
+        }
+    }
+
+
+    public ResponseEntity<InputStreamResource> getMinioImage(String filename) {
+        try {
+            StatObjectResponse statObjectResponse = minioClient.statObject(
+                    StatObjectArgs.builder().bucket(BUCKET_NAME).object(filename).build());
+
+            // Получаем "name" из метаданных
+            String ogName = statObjectResponse.userMetadata().get("name");
+
+            // Если "name" равно null, используем имя файла
+            if (ogName == null) {
+                ogName = filename;
+            }
+
+            log.info("Original Name from MinIO: {}", ogName);
+
+            InputStream stream = minioClient.getObject(GetObjectArgs
+                    .builder()
+                    .bucket(BUCKET_NAME)
+                    .object(filename)
+                    .build());
+
+            HttpHeaders respHeaders = new HttpHeaders();
+            respHeaders.setContentDispositionFormData("attachment", ogName);
+            respHeaders.setContentType(MediaType.IMAGE_JPEG);
+
+            log.info("Downloading file with name: {}", filename);
+
+            return new ResponseEntity<>(new InputStreamResource(stream), respHeaders, HttpStatus.OK);
+        } catch (ServerException | InsufficientDataException | ErrorResponseException | IOException |
+                 NoSuchAlgorithmException | InvalidKeyException | InvalidResponseException |
+                 XmlParserException | InternalException e) {
+            log.error("Error getting image from MinIO: {}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 

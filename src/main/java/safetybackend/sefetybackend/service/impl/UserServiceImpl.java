@@ -5,7 +5,8 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,6 @@ import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
     private String EMAIL;
 
     @Override
-    public AuthenticationResponse signUp(SignUpRequest signUpRequest,MultipartFile multipartFile) {
+    public AuthenticationResponse signUp(SignUpRequest signUpRequest) {
         log.info("Signing up");
         if (userRepository.existsByUserInfoEmail(signUpRequest.getEmail())) {
             throw new AlreadyExistException("Sorry, this email is already registered. Please try a different email or login to your existing account");
@@ -97,13 +97,6 @@ public class UserServiceImpl implements UserService {
         newAddress.setUser(newUser);
         company.setUsers(List.of(newUser));
         newUser.setCompany(company);
-
-        String fileName = "user-" + newUser.getId() + "-image";
-        minioService.saveImage(fileName,multipartFile);
-        File newFile = new File();
-        newFile.setFileUrl(fileName);
-        newFile.setUser(newUser);
-        fileRepository.save(newFile);
         userRepository.save(newUser);
 
         var jwtToken = jwtService.generateToken(newUserInfo);
@@ -217,6 +210,44 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public SimpleResponse saveUserImage(final MultipartFile multipartFile) {
+        try {
+            UserInfo userInfo = jwtService.getAuthenticationUser();
+            String originalFilename = System.currentTimeMillis() + multipartFile.getOriginalFilename();
+
+            minioService.saveImage(originalFilename, multipartFile);
+
+            log.info("User image saved successfully. User: {}, Filename: {}", userInfo.getUsername(), originalFilename);
+
+            File newFile = new File();
+            newFile.setFileUrl(originalFilename);
+            newFile.setUser(userInfo.getUser());
+            fileRepository.save(newFile);
+            return SimpleResponse.builder()
+                    .message("User image successfully saved!")
+                    .status(HttpStatus.CREATED)
+                    .build();
+        } catch (BadRequestException e) {
+            log.error("Error saving user image", e);
+            return SimpleResponse.builder()
+                    .message("Error saving user image")
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+    }
+
+    public ResponseEntity<InputStreamResource> getUserImage(String fileName) {
+            UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
+            File file = fileRepository.findFileByUserIdAndFileUrl(tokenUserInfo.getUser().getId(), fileName)
+                    .orElseThrow(() -> new NotFoundException(String.format("File with name '%s' not found for user with id: %s", fileName, tokenUserInfo.getUser().getId())));
+
+            log.info("Find file by user id and filename successfully");
+
+            return minioService.getMinioImage(file.getFileUrl());
+    }
+
+
 
     @Override
     public UserUpdateResponse updateUser(SignUpRequest request) {
@@ -234,8 +265,8 @@ public class UserServiceImpl implements UserService {
                 new NotFoundException(String.format("Address with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find address by user id successful");
 
-        File file = fileRepository.findFileByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("File with id: %s not found !", userId)));
+        File file = fileRepository.findFileByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("File with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find file by user id successful");
 
         //TODO Update user
