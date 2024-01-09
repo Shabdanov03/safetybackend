@@ -4,6 +4,8 @@ import org.springframework.web.multipart.MultipartFile;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserSuspendHelpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
@@ -18,9 +20,13 @@ public interface UserService {
 
     SimpleResponse resetPassword(String code, String newPassword);
 
-    UserUpdateResponse updateUser(Long userId, SignUpRequest request);
+    UserUpdateResponse updateUser(SignUpRequest request);
 
     SimpleResponse deleteById(Long userId);
 
     UserResponse getUser();
+
+    SimpleResponse needEmergencyHelpAndChangeUserStatus(UserNeedHelpRequest needHelpRequest);
+
+    SimpleResponse suspendEmergencyHelp(UserSuspendHelpRequest suspendHelpRequest);
 }

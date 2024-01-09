@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.enums.Role;
+import safetybackend.sefetybackend.enums.UserStatus;
+import safetybackend.sefetybackend.enums.UserStatus;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 
@@ -23,6 +25,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 CONCAT(u.first_name,' ',u.last_name) AS full_name,
                 u.date_of_birth AS date_of_birth,
                 f.file_url AS image,
+                u.user_status AS userStatus,
                 ui.email AS email,
                 ui.password AS password,
                 ui.role AS role,
@@ -44,6 +47,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                                 .fullName(resultSet.getString("full_name"))
                                 .dateOfBirth(resultSet.getDate("date_of_birth").toLocalDate())
                                 .image(resultSet.getString("image"))
+                                .userStatus(UserStatus.valueOf(resultSet.getString("userStatus")))
                                 .email(resultSet.getString("email"))
                                 .password(resultSet.getString("password"))
                                 .role(Role.valueOf(resultSet.getString("role")))

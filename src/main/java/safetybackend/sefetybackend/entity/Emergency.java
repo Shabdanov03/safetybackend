@@ -25,6 +25,7 @@ public class Emergency {
     private Double userLong;
     private Double companyLat;
     private Double companyLong;
+    private String description;
     @OneToMany(cascade = {REFRESH, DETACH, MERGE, PERSIST}, mappedBy = "emergency")
     private List<User> users;
     @ManyToOne(cascade = {REFRESH, DETACH, MERGE, PERSIST})

@@ -19,18 +19,11 @@ import safetybackend.sefetybackend.service.UserService;
 public class UserController {
     private final UserService userService;
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "This is update user method")
-    @PutMapping("/{id}")
-    public ResponseEntity<UserUpdateResponse> update(@PathVariable @Valid Long id, @RequestBody SignUpRequest request) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @Operation(summary = "This is delete user method")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<SimpleResponse> delete(@PathVariable @Valid Long id) {
-        return ResponseEntity.ok(userService.deleteById(id));
+    @PutMapping()
+    public ResponseEntity<UserUpdateResponse> update (@RequestBody SignUpRequest request) {
+        return ResponseEntity.ok(userService.updateUser(request));
     }
 
     @PreAuthorize("hasAuthority('USER')")
