@@ -38,7 +38,8 @@ public class User {
     @Enumerated(STRING)
     private UserStatus userStatus;
     private Boolean isActive;
-    private String image;
+    @OneToOne(cascade = ALL,mappedBy = "user")
+    private File imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 

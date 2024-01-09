@@ -18,7 +18,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendEmail(String to, String subject, String body) {
-        log.info("Sending email to : {}",to);
+        log.info("Sending email to : {}", to);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -29,9 +29,9 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
 
-            log.info("Email sent successfully to : {}",to);
+            log.info("Email sent successfully to : {}", to);
         } catch (MessagingException e) {
-            log.error("Failed to send email to : {}",to, e);
+            log.error("Failed to send email to : {}", to, e);
             throw new BadCredentialException("Failed to send email");
         }
     }

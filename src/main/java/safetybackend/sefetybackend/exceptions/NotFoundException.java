@@ -9,4 +9,5 @@ public class NotFoundException extends RuntimeException {
         super(massage);
     }
 
+
 }

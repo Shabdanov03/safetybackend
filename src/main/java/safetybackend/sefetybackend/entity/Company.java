@@ -22,6 +22,8 @@ public class Company {
     private Long id;
     private String name;
     private String phoneNumber;
+    @OneToOne(cascade = ALL,mappedBy = "company")
+    private File imageUrl;
     @OneToOne(cascade = ALL, mappedBy = "company")
     private UserInfo userInfo;
     @OneToMany(cascade = {MERGE, REFRESH, PERSIST, DETACH}, mappedBy = "company")

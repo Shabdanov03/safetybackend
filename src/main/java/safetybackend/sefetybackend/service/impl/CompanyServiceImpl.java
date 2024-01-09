@@ -28,6 +28,7 @@ public class CompanyServiceImpl implements CompanyService {
         if (companyRepository.existsByUserInfoEmail(request.getEmail())) {
             throw new AlreadyExistException("Sorry, this email is already registered. Please try a different email or login to your existing account");
         }
+
         UserInfo newUserInfo = UserInfo.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -39,6 +40,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .phoneNumber(request.getPhoneNumber())
                 .userInfo(newUserInfo)
                 .build();
+
         newUserInfo.setCompany(newCompany);
         companyRepository.save(newCompany);
 

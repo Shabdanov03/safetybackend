@@ -98,5 +98,6 @@ public class JwtService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findUserInfoByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User with email: %s not found".formatted(email)));
+
     }
 }

@@ -5,12 +5,16 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import safetybackend.sefetybackend.config.jwtConfig.JwtService;
+import safetybackend.sefetybackend.config.minio.MinioService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
@@ -30,7 +34,6 @@ import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
-
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,8 @@ public class UserServiceImpl implements UserService {
     private final TemplateEngine templateEngine;
     private final CompanyRepository companyRepository;
     private final CustomUserRepository customUserRepository;
+    private final FileRepository fileRepository;
+    private final MinioService minioService;
     private final EmergencyRepository emergencyRepository;
     private static final int CODE_LENGTH = 6;
 
@@ -86,7 +91,6 @@ public class UserServiceImpl implements UserService {
         newUser.setDateOfBirth(signUpRequest.getDateOfBirth());
         newUser.setIsActive(false);
         newUser.setUserStatus(UserStatus.OK);
-        newUser.setImage(signUpRequest.getImage());
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
         newUserInfo.setUser(newUser);
@@ -206,6 +210,44 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public SimpleResponse saveUserImage(final MultipartFile multipartFile) {
+        try {
+            UserInfo userInfo = jwtService.getAuthenticationUser();
+            String originalFilename = System.currentTimeMillis() + multipartFile.getOriginalFilename();
+
+            minioService.saveImage(originalFilename, multipartFile);
+
+            log.info("User image saved successfully. User: {}, Filename: {}", userInfo.getUsername(), originalFilename);
+
+            File newFile = new File();
+            newFile.setFileUrl(originalFilename);
+            newFile.setUser(userInfo.getUser());
+            fileRepository.save(newFile);
+            return SimpleResponse.builder()
+                    .message("User image successfully saved!")
+                    .status(HttpStatus.CREATED)
+                    .build();
+        } catch (BadRequestException e) {
+            log.error("Error saving user image", e);
+            return SimpleResponse.builder()
+                    .message("Error saving user image")
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+    }
+
+    public ResponseEntity<InputStreamResource> getUserImage(String fileName) {
+            UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
+            File file = fileRepository.findFileByUserIdAndFileUrl(tokenUserInfo.getUser().getId(), fileName)
+                    .orElseThrow(() -> new NotFoundException(String.format("File with name '%s' not found for user with id: %s", fileName, tokenUserInfo.getUser().getId())));
+
+            log.info("Find file by user id and filename successfully");
+
+            return minioService.getMinioImage(file.getFileUrl());
+    }
+
+
 
     @Override
     public UserUpdateResponse updateUser(SignUpRequest request) {
@@ -222,6 +264,10 @@ public class UserServiceImpl implements UserService {
         Address address = addressRepository.findAddressByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
                 new NotFoundException(String.format("Address with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find address by user id successful");
+
+        File file = fileRepository.findFileByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("File with id: %s not found !", tokenUserInfo.getUser().getId())));
+        log.info("find file by user id successful");
 
         //TODO Update user
         if (request.getFirstName() != null) {
@@ -275,6 +321,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public SimpleResponse deleteById(Long userId) {
         log.info("Deleting user with id: {}", userId);
 
@@ -293,8 +340,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById() {
-        log.info("Getting user by token");
+    public UserResponse getUser() {
+        log.info("Getting user by id ");
         UserInfo userInfo = jwtService.getAuthenticationUser();
 
         return customUserRepository.getUserById(userInfo.getUser().getId()).orElseThrow(
@@ -354,7 +401,6 @@ public class UserServiceImpl implements UserService {
                 .status(HttpStatus.OK)
                 .build();
     }
-
 
     @PostConstruct
     public void addAdmin() {

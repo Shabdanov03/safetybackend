@@ -21,25 +21,25 @@ public class AuthController {
     private final UserService userService;
 
     @Operation(summary = "This is sign-up method")
-    @PostMapping("/sign-up")
-    public ResponseEntity<AuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest signUpRequest) {
+    @PostMapping(value = "/signUp")
+    public ResponseEntity<AuthenticationResponse> signUp(@RequestBody  SignUpRequest signUpRequest) {
         return ResponseEntity.ok(userService.signUp(signUpRequest));
     }
 
     @Operation(summary = "This is sign-in method")
-    @PostMapping("/sign-in")
+    @PostMapping("/signIn")
     public ResponseEntity<AuthenticationResponse> signIn(@RequestBody @Valid SignInRequest signInRequest) {
         return ResponseEntity.ok(userService.signIn(signInRequest));
     }
 
     @Operation(summary = "This is forgot-password method")
-    @PostMapping("/forgot-password")
+    @PostMapping("/forgotPassword")
     public ResponseEntity<SimpleResponse> processForgotPasswordForm(@RequestBody @Valid ForgotPassword forgotPassword) {
         return ResponseEntity.ok(userService.forgotPassword(forgotPassword));
     }
 
     @Operation(summary = "This is reset-password method")
-    @PostMapping("/reset-password")
+    @PostMapping("/resetPassword")
     public ResponseEntity<SimpleResponse> resetPassword(@RequestParam String code, @RequestBody @Valid ResetPasswordRequest request) {
         return ResponseEntity.ok(userService.resetPassword(code, request.getNewPassword()));
     }
