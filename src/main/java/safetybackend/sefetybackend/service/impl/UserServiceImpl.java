@@ -208,18 +208,19 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserUpdateResponse updateUser(Long userId, SignUpRequest request) {
+    public UserUpdateResponse updateUser(SignUpRequest request) {
         log.info("User update");
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User with id: %s not found !", userId)));
+        UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
+        User user = userRepository.findById(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("User with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find user by id successful");
 
-        UserInfo userInfo = userInfoRepository.findUserInfoByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User info with id: %s not found !", userId)));
+        UserInfo userInfo = userInfoRepository.findUserInfoByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("User info with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find user info by user id successful");
 
-        Address address = addressRepository.findAddressByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Address with id: %s not found !", userId)));
+        Address address = addressRepository.findAddressByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("Address with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find address by user id successful");
 
         //TODO Update user
@@ -232,9 +233,7 @@ public class UserServiceImpl implements UserService {
         if (request.getDateOfBirth() != null) {
             user.setDateOfBirth(request.getDateOfBirth());
         }
-        if (request.getImage() != null) {
-            user.setImage(request.getImage());
-        }
+
         // TODO Update user info
         if (request.getEmail() != null) {
             userInfo.setEmail(request.getEmail());
@@ -266,7 +265,6 @@ public class UserServiceImpl implements UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .dateOfBirth(user.getDateOfBirth())
-                .image(user.getImage())
                 .phoneNumber1(user.getAddress().getSim1())
                 .phoneNumber2(user.getAddress().getSim2())
                 .city(user.getAddress().getCity())
@@ -295,13 +293,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(Long userId) {
+    public UserResponse getUserById() {
         log.info("Getting user by token");
         UserInfo userInfo = jwtService.getAuthenticationUser();
 
-        return customUserRepository.getUserById(userId).orElseThrow(
+        return customUserRepository.getUserById(userInfo.getUser().getId()).orElseThrow(
                 () -> {
-                    String errorMessage = String.format("User with id '%s' was not found", userId);
+                    String errorMessage = String.format("User with id '%s' was not found", userInfo.getUser().getId());
                     log.error(errorMessage);
                     return new NotFoundException(errorMessage);
                 }
@@ -317,6 +315,7 @@ public class UserServiceImpl implements UserService {
         });
         log.info("Find user successfully");
         user.setUserStatus(UserStatus.NEED_HELP);
+        log.info("Change user status successfully");
 
         Emergency emergency = new Emergency();
         emergency.setUserLong(needHelpRequest.getUserLong());
@@ -342,6 +341,7 @@ public class UserServiceImpl implements UserService {
         });
         log.info("Find user successfully");
         user.setUserStatus(UserStatus.OK);
+        log.info("Change user status successfully");
         userRepository.save(user);
         log.info("User successfully saved !");
         Emergency emergency = user.getEmergency();

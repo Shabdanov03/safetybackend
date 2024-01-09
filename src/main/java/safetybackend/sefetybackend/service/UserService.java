@@ -19,11 +19,11 @@ public interface UserService {
 
     SimpleResponse resetPassword(String code, String newPassword);
 
-    UserUpdateResponse updateUser(Long userId, SignUpRequest request);
+    UserUpdateResponse updateUser(SignUpRequest request);
 
     SimpleResponse deleteById(Long userId);
 
-    UserResponse getUserById(Long userId);
+    UserResponse getUserById();
 
     SimpleResponse needEmergencyHelpAndChangeUserStatus(UserNeedHelpRequest needHelpRequest);
 
