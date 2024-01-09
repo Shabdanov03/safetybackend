@@ -15,6 +15,7 @@ import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserSuspendHelpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
@@ -31,6 +32,7 @@ import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -83,6 +85,7 @@ public class UserServiceImpl implements UserService {
         newUser.setLastName(signUpRequest.getLastName());
         newUser.setDateOfBirth(signUpRequest.getDateOfBirth());
         newUser.setIsActive(false);
+        newUser.setUserStatus(UserStatus.OK);
         newUser.setImage(signUpRequest.getImage());
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
@@ -313,16 +316,40 @@ public class UserServiceImpl implements UserService {
         });
         log.info("Find user successfully");
         user.setUserStatus(UserStatus.NEED_HELP);
-        userRepository.save(user);
-        log.info("User successfully saved !");
+
         Emergency emergency = new Emergency();
-        emergency.setUsers(List.of(user));
         emergency.setUserLong(needHelpRequest.getUserLong());
         emergency.setUserLat(needHelpRequest.getUserLat());
+        user.setEmergency(emergency);
+        emergency.setUsers(new ArrayList<>(List.of(user)));
+        emergencyRepository.save(emergency);
+        log.info("Emergency saved successful!");
+        userRepository.save(user);
+        log.info("User successfully saved !");
+        return SimpleResponse.builder()
+                .message("Need emergency help and change user status successful")
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Override
+    public SimpleResponse suspendEmergencyHelp(UserSuspendHelpRequest suspendHelpRequest) {
+        User user = userRepository.findById(suspendHelpRequest.getUserId()).orElseThrow(() -> {
+            String errorMessage = String.format("User with id '%d' not found", suspendHelpRequest.getUserId());
+            log.error(errorMessage);
+            return new NotFoundException(errorMessage);
+        });
+        log.info("Find user successfully");
+        user.setUserStatus(UserStatus.OK);
+        userRepository.save(user);
+        log.info("User successfully saved !");
+        Emergency emergency = user.getEmergency();
+        emergency.setDescription(suspendHelpRequest.getDescription());
+
         emergencyRepository.save(emergency);
         log.info("Emergency saved successful!");
         return SimpleResponse.builder()
-                .message("Need emergency help and change user status successful")
+                .message("Suspend emergency help successful")
                 .status(HttpStatus.OK)
                 .build();
     }

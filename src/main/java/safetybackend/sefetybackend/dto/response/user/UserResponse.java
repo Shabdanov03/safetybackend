@@ -4,6 +4,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.*;
 import safetybackend.sefetybackend.enums.Role;
+import safetybackend.sefetybackend.enums.UserStatus;
 
 import java.time.LocalDate;
 
@@ -17,6 +18,8 @@ public class UserResponse {
     private String fullName;
     private LocalDate dateOfBirth;
     private String image;
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
     private String email;
     private String password;
     @Enumerated(EnumType.STRING)

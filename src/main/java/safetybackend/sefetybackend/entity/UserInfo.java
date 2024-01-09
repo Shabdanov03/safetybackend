@@ -23,7 +23,7 @@ import static jakarta.persistence.EnumType.STRING;
 public class UserInfo implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_info_id_gen")
-    @SequenceGenerator(name = "user_info_id_gen", sequenceName = "user_info_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "user_info_id_gen", sequenceName = "user_info_id_seq", allocationSize = 1,initialValue = 2)
     private Long id;
     private String email;
     private String password;
