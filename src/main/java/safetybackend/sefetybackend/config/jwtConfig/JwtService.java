@@ -7,10 +7,15 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import safetybackend.sefetybackend.entity.UserInfo;
+import safetybackend.sefetybackend.exceptions.NotFoundException;
+import safetybackend.sefetybackend.repository.UserRepository;
 
 import java.security.Key;
 import java.util.Date;
@@ -21,7 +26,10 @@ import java.util.function.Function;
 
 @Service
 @Configuration
+@RequiredArgsConstructor
 public class JwtService {
+    private final UserRepository userRepository;
+
     @Value("${jwt.secret-key}")
     private String SECRET_KEY;
 
@@ -84,5 +92,11 @@ public class JwtService {
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public UserInfo getAuthenticationUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findUserInfoByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User with email: %s not found".formatted(email)));
     }
 }

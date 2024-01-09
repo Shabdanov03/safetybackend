@@ -14,27 +14,25 @@ import safetybackend.sefetybackend.config.jwtConfig.JwtService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
+import safetybackend.sefetybackend.dto.request.user.UserSuspendHelpRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.dto.response.auth.AuthenticationResponse;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.dto.response.user.UserUpdateResponse;
-import safetybackend.sefetybackend.entity.Address;
-import safetybackend.sefetybackend.entity.Company;
-import safetybackend.sefetybackend.entity.User;
-import safetybackend.sefetybackend.entity.UserInfo;
+import safetybackend.sefetybackend.entity.*;
 import safetybackend.sefetybackend.enums.Role;
+import safetybackend.sefetybackend.enums.UserStatus;
 import safetybackend.sefetybackend.exceptions.AlreadyExistException;
 import safetybackend.sefetybackend.exceptions.BadRequestException;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
-import safetybackend.sefetybackend.repository.AddressRepository;
-import safetybackend.sefetybackend.repository.CompanyRepository;
-import safetybackend.sefetybackend.repository.UserInfoRepository;
-import safetybackend.sefetybackend.repository.UserRepository;
+import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -50,6 +48,7 @@ public class UserServiceImpl implements UserService {
     private final TemplateEngine templateEngine;
     private final CompanyRepository companyRepository;
     private final CustomUserRepository customUserRepository;
+    private final EmergencyRepository emergencyRepository;
     private static final int CODE_LENGTH = 6;
 
 
@@ -86,6 +85,7 @@ public class UserServiceImpl implements UserService {
         newUser.setLastName(signUpRequest.getLastName());
         newUser.setDateOfBirth(signUpRequest.getDateOfBirth());
         newUser.setIsActive(false);
+        newUser.setUserStatus(UserStatus.OK);
         newUser.setImage(signUpRequest.getImage());
         newUser.setUserInfo(newUserInfo);
         newUser.setAddress(newAddress);
@@ -208,18 +208,19 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserUpdateResponse updateUser(Long userId, SignUpRequest request) {
+    public UserUpdateResponse updateUser(SignUpRequest request) {
         log.info("User update");
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User with id: %s not found !", userId)));
+        UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
+        User user = userRepository.findById(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("User with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find user by id successful");
 
-        UserInfo userInfo = userInfoRepository.findUserInfoByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("User info with id: %s not found !", userId)));
+        UserInfo userInfo = userInfoRepository.findUserInfoByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("User info with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find user info by user id successful");
 
-        Address address = addressRepository.findAddressByUserId(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Address with id: %s not found !", userId)));
+        Address address = addressRepository.findAddressByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
+                new NotFoundException(String.format("Address with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find address by user id successful");
 
         //TODO Update user
@@ -232,9 +233,7 @@ public class UserServiceImpl implements UserService {
         if (request.getDateOfBirth() != null) {
             user.setDateOfBirth(request.getDateOfBirth());
         }
-        if (request.getImage() != null) {
-            user.setImage(request.getImage());
-        }
+
         // TODO Update user info
         if (request.getEmail() != null) {
             userInfo.setEmail(request.getEmail());
@@ -266,7 +265,6 @@ public class UserServiceImpl implements UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .dateOfBirth(user.getDateOfBirth())
-                .image(user.getImage())
                 .phoneNumber1(user.getAddress().getSim1())
                 .phoneNumber2(user.getAddress().getSim2())
                 .city(user.getAddress().getCity())
@@ -295,16 +293,66 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse getUserById(Long userId) {
-        log.info("Getting user by id '{}'", userId);
+    public UserResponse getUserById() {
+        log.info("Getting user by token");
+        UserInfo userInfo = jwtService.getAuthenticationUser();
 
-        return customUserRepository.getUserById(userId).orElseThrow(
+        return customUserRepository.getUserById(userInfo.getUser().getId()).orElseThrow(
                 () -> {
-                    String errorMessage = String.format("User with id '%s' was not found", userId);
+                    String errorMessage = String.format("User with id '%s' was not found", userInfo.getUser().getId());
                     log.error(errorMessage);
                     return new NotFoundException(errorMessage);
                 }
         );
+    }
+
+    @Override
+    public SimpleResponse needEmergencyHelpAndChangeUserStatus(UserNeedHelpRequest needHelpRequest) {
+        User user = userRepository.findById(needHelpRequest.getUserId()).orElseThrow(() -> {
+            String errorMessage = String.format("User with id '%d' not found", needHelpRequest.getUserId());
+            log.error(errorMessage);
+            return new NotFoundException(errorMessage);
+        });
+        log.info("Find user successfully");
+        user.setUserStatus(UserStatus.NEED_HELP);
+        log.info("Change user status successfully");
+
+        Emergency emergency = new Emergency();
+        emergency.setUserLong(needHelpRequest.getUserLong());
+        emergency.setUserLat(needHelpRequest.getUserLat());
+        user.setEmergency(emergency);
+        emergency.setUsers(new ArrayList<>(List.of(user)));
+        emergencyRepository.save(emergency);
+        log.info("Emergency saved successful!");
+        userRepository.save(user);
+        log.info("User successfully saved !");
+        return SimpleResponse.builder()
+                .message("Need emergency help and change user status successful")
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Override
+    public SimpleResponse suspendEmergencyHelp(UserSuspendHelpRequest suspendHelpRequest) {
+        User user = userRepository.findById(suspendHelpRequest.getUserId()).orElseThrow(() -> {
+            String errorMessage = String.format("User with id '%d' not found", suspendHelpRequest.getUserId());
+            log.error(errorMessage);
+            return new NotFoundException(errorMessage);
+        });
+        log.info("Find user successfully");
+        user.setUserStatus(UserStatus.OK);
+        log.info("Change user status successfully");
+        userRepository.save(user);
+        log.info("User successfully saved !");
+        Emergency emergency = user.getEmergency();
+        emergency.setDescription(suspendHelpRequest.getDescription());
+
+        emergencyRepository.save(emergency);
+        log.info("Emergency saved successful!");
+        return SimpleResponse.builder()
+                .message("Suspend emergency help successful")
+                .status(HttpStatus.OK)
+                .build();
     }
 
 
