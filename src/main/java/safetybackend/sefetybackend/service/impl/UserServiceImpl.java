@@ -296,7 +296,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(Long userId) {
-        log.info("Getting user by id '{}'", userId);
+        log.info("Getting user by token");
+        UserInfo userInfo = jwtService.getAuthenticationUser();
 
         return customUserRepository.getUserById(userId).orElseThrow(
                 () -> {
