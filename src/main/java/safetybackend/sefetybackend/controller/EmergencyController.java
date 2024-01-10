@@ -19,14 +19,14 @@ public class EmergencyController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     @Operation(summary = "This is need emergency help method")
-    @PostMapping("/needEmergencyHelpAndChangeStatus")
+    @PostMapping("/need-emergency")
     public SimpleResponse needEmergencyHelpAndChangeStatus(@RequestBody @Valid UserNeedHelpRequest userNeedHelpRequest) {
         return userService.needEmergencyHelpAndChangeUserStatus(userNeedHelpRequest);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     @Operation(summary = "This is suspend emergency help method")
-    @PostMapping("/suspendEmergencyHelp")
+    @PostMapping("/suspend-emergency")
     public SimpleResponse suspendEmergencyHelp(@RequestBody @Valid UserSuspendHelpRequest suspendHelpRequest) {
         return userService.suspendEmergencyHelp(suspendHelpRequest);
     }
