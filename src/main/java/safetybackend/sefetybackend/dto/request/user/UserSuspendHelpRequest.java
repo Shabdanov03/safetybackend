@@ -2,6 +2,7 @@ package safetybackend.sefetybackend.dto.request.user;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
 @Builder
 @Getter
 @Setter

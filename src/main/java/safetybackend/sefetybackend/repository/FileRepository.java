@@ -5,8 +5,6 @@ import safetybackend.sefetybackend.entity.File;
 
 import java.util.Optional;
 
-public interface FileRepository extends JpaRepository<File,Long> {
-    Optional<File> findFileByUserId(Long userId);
-
-    Optional<File> findFileByUserIdAndFileUrl(Long userId,String fileUrl);
+public interface FileRepository extends JpaRepository<File, Long> {
+    Optional<File> findFileByUserIdAndFileUrl(Long userId, String fileUrl);
 }

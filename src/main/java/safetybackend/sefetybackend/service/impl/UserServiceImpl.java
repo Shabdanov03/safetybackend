@@ -34,6 +34,7 @@ import safetybackend.sefetybackend.repository.*;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.EmailService;
 import safetybackend.sefetybackend.service.UserService;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -237,16 +238,16 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
     public ResponseEntity<InputStreamResource> getUserImage(String fileName) {
-            UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
-            File file = fileRepository.findFileByUserIdAndFileUrl(tokenUserInfo.getUser().getId(), fileName)
-                    .orElseThrow(() -> new NotFoundException(String.format("File with name '%s' not found for user with id: %s", fileName, tokenUserInfo.getUser().getId())));
+        UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
+        File file = fileRepository.findFileByUserIdAndFileUrl(tokenUserInfo.getUser().getId(), fileName)
+                .orElseThrow(() -> new NotFoundException(String.format("File with name '%s' not found for user with id: %s", fileName, tokenUserInfo.getUser().getId())));
 
-            log.info("Find file by user id and filename successfully");
+        log.info("Find file by user id and filename successfully");
 
-            return minioService.getMinioImage(file.getFileUrl());
+        return minioService.getMinioImage(file.getFileUrl());
     }
-
 
 
     @Override
@@ -265,10 +266,6 @@ public class UserServiceImpl implements UserService {
                 new NotFoundException(String.format("Address with id: %s not found !", tokenUserInfo.getUser().getId())));
         log.info("find address by user id successful");
 
-        File file = fileRepository.findFileByUserId(tokenUserInfo.getUser().getId()).orElseThrow(() ->
-                new NotFoundException(String.format("File with id: %s not found !", tokenUserInfo.getUser().getId())));
-        log.info("find file by user id successful");
-
         //TODO Update user
         if (request.getFirstName() != null) {
             user.setFirstName(request.getFirstName());
@@ -279,7 +276,6 @@ public class UserServiceImpl implements UserService {
         if (request.getDateOfBirth() != null) {
             user.setDateOfBirth(request.getDateOfBirth());
         }
-
         // TODO Update user info
         if (request.getEmail() != null) {
             userInfo.setEmail(request.getEmail());
