@@ -38,13 +38,14 @@ public class UserController {
     @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "This is update user method")
     @PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SimpleResponse saveUserImage(@RequestParam MultipartFile multipartFile){
+    public SimpleResponse saveUserImage(@RequestParam MultipartFile multipartFile) {
         return userService.saveUserImage(multipartFile);
     }
+
     @PreAuthorize("hasAuthority('USER')")
     @Operation(summary = "This is get user image method")
     @GetMapping("/{fileName}")
-    public ResponseEntity<InputStreamResource> getUserImage(@PathVariable String fileName){
+    public ResponseEntity<InputStreamResource> getUserImage(@PathVariable String fileName) {
         return userService.getUserImage(fileName);
     }
 }

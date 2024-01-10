@@ -25,7 +25,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**","v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "v3/api-docs/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .build();
 
     }
+
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers("/error");

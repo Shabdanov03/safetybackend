@@ -22,7 +22,7 @@ public class AuthController {
 
     @Operation(summary = "This is sign-up method")
     @PostMapping(value = "/signUp")
-    public ResponseEntity<AuthenticationResponse> signUp(@RequestBody  SignUpRequest signUpRequest) {
+    public ResponseEntity<AuthenticationResponse> signUp(@RequestBody SignUpRequest signUpRequest) {
         return ResponseEntity.ok(userService.signUp(signUpRequest));
     }
 

@@ -25,6 +25,7 @@ public interface UserService {
     SimpleResponse saveUserImage(MultipartFile multipartFile);
 
     ResponseEntity<InputStreamResource> getUserImage(String fileName);
+
     UserUpdateResponse updateUser(SignUpRequest request);
 
     SimpleResponse deleteById(Long userId);

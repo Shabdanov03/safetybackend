@@ -50,10 +50,8 @@ public class MinioService {
             StatObjectResponse statObjectResponse = minioClient.statObject(
                     StatObjectArgs.builder().bucket(BUCKET_NAME).object(filename).build());
 
-            // Получаем "name" из метаданных
             String ogName = statObjectResponse.userMetadata().get("name");
 
-            // Если "name" равно null, используем имя файла
             if (ogName == null) {
                 ogName = filename;
             }

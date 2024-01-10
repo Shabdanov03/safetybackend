@@ -20,8 +20,8 @@ public class CompanyController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "This is save test method")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE,value = "/save")
-    public SimpleResponse save(@RequestBody @Valid CompanyRequest companyRequest,@RequestParam MultipartFile multipartFile) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, value = "/save")
+    public SimpleResponse save(@RequestBody @Valid CompanyRequest companyRequest, @RequestParam MultipartFile multipartFile) {
         return companyService.saveCompany(companyRequest);
     }
 

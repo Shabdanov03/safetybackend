@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.enums.Role;
 import safetybackend.sefetybackend.enums.UserStatus;
-import safetybackend.sefetybackend.enums.UserStatus;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
 import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 
