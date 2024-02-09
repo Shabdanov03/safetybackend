@@ -4,6 +4,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
+import safetybackend.sefetybackend.dto.request.auth.ResetPasswordRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
@@ -20,11 +21,11 @@ public interface UserService {
 
     SimpleResponse forgotPassword(ForgotPassword forgotPassword);
 
-    SimpleResponse resetPassword(String code, String newPassword);
+    SimpleResponse resetPassword(String code, ResetPasswordRequest request);
 
     SimpleResponse saveUserImage(MultipartFile multipartFile);
 
-    ResponseEntity<InputStreamResource> getUserImage(String fileName);
+    InputStreamResource getUserImage(String fileName);
 
     UserUpdateResponse updateUser(SignUpRequest request);
 

@@ -16,6 +16,7 @@ import org.thymeleaf.context.Context;
 import safetybackend.sefetybackend.config.jwtConfig.JwtService;
 import safetybackend.sefetybackend.config.minio.MinioService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
+import safetybackend.sefetybackend.dto.request.auth.ResetPasswordRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignInRequest;
 import safetybackend.sefetybackend.dto.request.auth.SignUpRequest;
 import safetybackend.sefetybackend.dto.request.user.UserNeedHelpRequest;
@@ -186,7 +187,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public SimpleResponse resetPassword(String code, String newPassword) {
+    public SimpleResponse resetPassword(String code, ResetPasswordRequest request) {
         log.info("Resetting password ");
         try {
             UserInfo userInfo = userInfoRepository.findUserInfoByCode(code)
@@ -194,7 +195,7 @@ public class UserServiceImpl implements UserService {
 
             log.info("Found user: {}", userInfo);
 
-            String encodedPassword = passwordEncoder.encode(newPassword);
+            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
             userInfo.setPassword(encodedPassword);
             userInfo.setResetPasswordCode(0);
 
@@ -239,14 +240,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<InputStreamResource> getUserImage(String fileName) {
+    public InputStreamResource getUserImage(String fileName) {
         UserInfo tokenUserInfo = jwtService.getAuthenticationUser();
         File file = fileRepository.findFileByUserIdAndFileUrl(tokenUserInfo.getUser().getId(), fileName)
                 .orElseThrow(() -> new NotFoundException(String.format("File with name '%s' not found for user with id: %s", fileName, tokenUserInfo.getUser().getId())));
 
         log.info("Find file by user id and filename successfully");
 
-        return minioService.getMinioImage(file.getFileUrl());
+        return minioService.getMinioImage(file.getFileUrl()).getBody();
     }
 
 
