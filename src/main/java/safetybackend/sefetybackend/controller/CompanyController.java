@@ -1,33 +1,26 @@
 package safetybackend.sefetybackend.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import safetybackend.sefetybackend.api.CompanyApi;
 import safetybackend.sefetybackend.dto.request.company.CompanyRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
 import safetybackend.sefetybackend.service.CompanyService;
 
 @RestController
-@RequestMapping("/api/company")
 @RequiredArgsConstructor
 @CrossOrigin
-public class CompanyController {
+public class CompanyController implements CompanyApi {
     private final CompanyService companyService;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @Operation(summary = "This is save test method")
-    @PostMapping(value = "/save")
-    public SimpleResponse save(@RequestBody @Valid CompanyRequest companyRequest) {
+
+    @Override
+    public SimpleResponse save(CompanyRequest companyRequest) {
         return companyService.saveCompany(companyRequest);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @Operation(summary = "This is delete company with id method")
-    @DeleteMapping("/{id}")
-    public SimpleResponse delete(@PathVariable Long id) {
+    @Override
+    public SimpleResponse delete(Long id) {
         return companyService.deleteById(id);
     }
-
 }
