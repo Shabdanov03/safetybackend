@@ -8,19 +8,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import safetybackend.sefetybackend.dto.request.company.CompanyRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
+import safetybackend.sefetybackend.dto.response.user.UserResponse;
 import safetybackend.sefetybackend.entity.Company;
 import safetybackend.sefetybackend.entity.UserInfo;
 import safetybackend.sefetybackend.enums.Role;
 import safetybackend.sefetybackend.exceptions.AlreadyExistException;
 import safetybackend.sefetybackend.exceptions.NotFoundException;
 import safetybackend.sefetybackend.repository.CompanyRepository;
+import safetybackend.sefetybackend.repository.custom.CustomUserRepository;
 import safetybackend.sefetybackend.service.CompanyService;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CompanyServiceImpl implements CompanyService {
     private final CompanyRepository companyRepository;
+    private final CustomUserRepository customUserRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -69,6 +74,12 @@ public class CompanyServiceImpl implements CompanyService {
                 .message(String.format("Company with id %s successfully deleted !", companyId))
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        log.info("Get all company users !");
+        return customUserRepository.getAllUsers();
     }
 
 }
