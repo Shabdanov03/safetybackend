@@ -7,6 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import safetybackend.sefetybackend.dto.request.company.CompanyRequest;
 import safetybackend.sefetybackend.dto.response.SimpleResponse;
+import safetybackend.sefetybackend.dto.response.user.UserResponse;
+
+import java.util.List;
 
 @RequestMapping(CompanyApi.COMPANY_API_PATH)
 @Tag(name = "Компания часть", description = CompanyApi.COMPANY_API_PATH)
@@ -22,4 +25,9 @@ public interface CompanyApi {
     @Operation(summary = "This is delete company with id method")
     @DeleteMapping("/{id}")
     SimpleResponse delete(@PathVariable Long id);
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','COMPANY')")
+    @Operation(summary = "This is get all company users")
+    @GetMapping
+    List<UserResponse> getAllUsers();
 }
