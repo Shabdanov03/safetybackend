@@ -1,4 +1,4 @@
-package safetybackend.sefetybackend.config.jwtConfig;
+package safetybackend.sefetybackend.config.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

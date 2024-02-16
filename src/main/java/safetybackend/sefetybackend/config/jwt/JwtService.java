@@ -1,4 +1,4 @@
-package safetybackend.sefetybackend.config.jwtConfig;
+package safetybackend.sefetybackend.config.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
