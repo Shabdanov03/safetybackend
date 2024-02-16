@@ -1,4 +1,4 @@
-package safetybackend.sefetybackend.config.swaggerConfiguration;
+package safetybackend.sefetybackend.config.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

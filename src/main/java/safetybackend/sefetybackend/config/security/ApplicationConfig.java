@@ -1,4 +1,4 @@
-package safetybackend.sefetybackend.config.securityConfig;
+package safetybackend.sefetybackend.config.security;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import safetybackend.sefetybackend.config.jwtConfig.JwtService;
+import safetybackend.sefetybackend.config.jwt.JwtService;
 import safetybackend.sefetybackend.config.minio.MinioService;
 import safetybackend.sefetybackend.dto.request.auth.ForgotPassword;
 import safetybackend.sefetybackend.dto.request.auth.ResetPasswordRequest;
